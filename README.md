@@ -1,101 +1,291 @@
-# MbbPoc
+# Country-Specific Component Rendering POC
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+A proof-of-concept demonstrating how to build React Native components with country-specific configurations using component co-location pattern.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+## What It Does
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/react-native?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+This project showcases a **component-specific configuration system** where each UI component can have different behaviors, styling, and formatting based on the selected country (Indonesia, Malaysia, Singapore).
 
-## Run tasks
+## Screenshots
 
-To run the dev server for your app, use:
+<table>
+  <tr>
+    <td align="center">
+      <b>Malaysia (MY)</b><br/>
+      <img src="image.png" width="300" alt="Malaysia - RM1,000.00 MYR" />
+    </td>
+    <td align="center">
+      <b>Singapore (SG)</b><br/>
+      <img src="image-1.png" width="300" alt="Singapore - S$1,000.00 SGD" />
+    </td>
+    <td align="center">
+      <b>Indonesia (ID)</b><br/>
+      <img src="image-2.png" width="300" alt="Indonesia - Rp1.000 IDR" />
+    </td>
+  </tr>
+</table>
+
+### Key Features
+
+- 🌍 **Country-Specific Rendering**: Components automatically adapt to country context
+- 💱 **Currency Formatting**: Different decimal places, symbols, and separators per country
+  - **Indonesia (ID)**: `Rp1.000` (no decimals, dot separator)
+  - **Malaysia (MY)**: `RM1,000.00` (2 decimals, comma separator)
+  - **Singapore (SG)**: `S$1,000.00` (2 decimals, comma separator)
+- 🎨 **Component Co-location**: Each component's config lives next to its implementation
+- ⚙️ **Environment-based**: Country selection via environment variables
+- 📦 **Monorepo Structure**: Nx workspace with shared component library
+
+## How It Works
+
+### Architecture
+
+The project uses a **component co-location pattern** where each component has its own config folder with country-specific settings:
+
+```
+libs/mbb-ui-kit/
+└── src/
+    ├── components/
+    │   └── CurrencyDisplay/
+    │       ├── CurrencyDisplay.tsx       # Component implementation
+    │       └── config/
+    │           ├── index.ts              # Config interface & getter
+    │           ├── id.ts                 # Indonesia config
+    │           ├── my.ts                 # Malaysia config
+    │           └── sg.ts                 # Singapore config
+    └── context/
+        └── CountryContext.tsx             # Global country state
+```
+
+### Component Configuration Pattern
+
+1. **Define Config Interface** (`config/index.ts`):
+
+```typescript
+export interface CurrencyConfig {
+  code: string;
+  symbol: string;
+  position: 'prefix' | 'suffix';
+  decimals: number;
+  locale: string;
+  // ... other properties
+}
+```
+
+2. **Create Country-Specific Configs** (`config/id.ts`, `my.ts`, `sg.ts`):
+
+```typescript
+export const idCurrencyConfig: CurrencyConfig = {
+  code: 'IDR',
+  symbol: 'Rp',
+  decimals: 0,
+  locale: 'id-ID',
+  // ...
+};
+```
+
+3. **Use in Component**:
+
+```typescript
+const { country } = useCountry();
+const config = getCurrencyConfig(country);
+// Component auto-adapts based on config
+```
+
+## Project Structure
+
+```
+mbb-poc/
+├── apps/
+│   └── mbb-country-render/          # React Native app
+│       ├── src/
+│       │   └── app/
+│       │       ├── App.tsx          # Root with CountryProvider
+│       │       └── TransferScreen.tsx  # Demo screen
+│       ├── .env                      # Country configuration
+│       └── vite.config.mts          # Web bundler config
+│
+├── libs/
+│   └── mbb-ui-kit/                  # Shared component library
+│       ├── src/
+│       │   ├── components/
+│       │   │   └── CurrencyDisplay/  # Example component
+│       │   │       ├── CurrencyDisplay.tsx
+│       │   │       └── config/       # Country configs
+│       │   │           ├── index.ts
+│       │   │           ├── id.ts
+│       │   │           ├── my.ts
+│       │   │           └── sg.ts
+│       │   ├── context/
+│       │   │   └── CountryContext.tsx  # Country state management
+│       │   └── index.ts             # Library exports
+│       └── package.json             # TurboModule config
+│
+├── package.json                     # Scripts for country-specific runs
+└── README.md
+```
+
+## Run Tasks
+
+### Run with Specific Country
+
+```sh
+npm run start:id    # Run with Indonesia
+npm run start:my    # Run with Malaysia
+npm run start:sg    # Run with Singapore
+npm start           # Run with default from .env
+```
+
+### Development Server
 
 ```sh
 npx nx serve mbb-country-render
 ```
 
-To create a production bundle:
+The app will be available at http://localhost:4200/
+
+### Production Build
 
 ```sh
 npx nx build mbb-country-render
 ```
 
-To see all available targets to run for a project, run:
+## Configuration
 
-```sh
-npx nx show project mbb-country-render
+### Setting the Country
+
+**Option 1: Environment Variable**
+
+Edit `apps/mbb-country-render/.env`:
+
+```
+VITE_COUNTRY=ID
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+**Option 2: NPM Script**
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Add new projects
-
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-Use the plugin's generator to create new projects.
-
-To generate a new application, use:
+Use predefined scripts:
 
 ```sh
-npx nx g @nx/react-native:app demo
+npm run start:my   # Sets VITE_COUNTRY=MY
 ```
 
-To generate a new library, use:
+**Option 3: Manual**
 
 ```sh
-npx nx g @nx/react:lib mylib
+SET VITE_COUNTRY=SG&& npx nx serve mbb-country-render
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+### Adding a New Country
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+1. **Add country code** to `CountryContext.tsx`:
 
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
+```typescript
+export type Country = 'ID' | 'MY' | 'SG' | 'TH'; // Add 'TH'
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+2. **Create config file** for each component:
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
+```
+libs/mbb-ui-kit/src/components/CurrencyDisplay/config/th.ts
 ```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+3. **Export in config index**:
 
-## Install Nx Console
+```typescript
+import { thCurrencyConfig } from './th';
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+const currencyConfigs: Record<CountryCode, CurrencyConfig> = {
+  // ... existing
+  TH: thCurrencyConfig,
+};
+```
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+4. **Add npm script** in `package.json`:
 
-## Useful links
+```json
+"start:th": "SET VITE_COUNTRY=TH&& nx serve mbb-country-render"
+```
 
-Learn more:
+## Adding New Components
 
-- [Learn more about this workspace setup](https://nx.dev/nx-api/react-native?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+To add a new component with country-specific configuration:
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+1. **Create component folder structure**:
+
+```
+libs/mbb-ui-kit/src/components/YourComponent/
+├── YourComponent.tsx
+└── config/
+    ├── index.ts    # Interface & getter
+    ├── id.ts       # Indonesia config
+    ├── my.ts       # Malaysia config
+    └── sg.ts       # Singapore config
+```
+
+2. **Define config interface** (`config/index.ts`):
+
+```typescript
+export interface YourComponentConfig {
+  // Define properties
+}
+
+export const getYourComponentConfig = (country: CountryCode) => {
+  return configs[country];
+};
+```
+
+3. **Create country configs** (`id.ts`, `my.ts`, `sg.ts`)
+
+4. **Export from library** (`libs/mbb-ui-kit/src/index.ts`):
+
+```typescript
+export { YourComponent } from './components/YourComponent/YourComponent';
+export { getYourComponentConfig } from './components/YourComponent/config';
+```
+
+5. **Use in app**:
+
+```typescript
+import { useCountry, YourComponent, getYourComponentConfig } from '@mbb-poc/mbb-ui-kit';
+
+const { country } = useCountry();
+const config = getYourComponentConfig(country);
+```
+
+## Technical Implementation
+
+### Country State Management
+
+Uses React Context API for global country state:
+
+```typescript
+// Wrap app with provider
+<CountryProvider initialCountry="ID">
+  <YourApp />
+</CountryProvider>;
+
+// Access in any component
+const { country, setCountry } = useCountry();
+```
+
+### Environment Variable Flow
+
+1. `.env` file or npm script sets `VITE_COUNTRY`
+2. Vite exposes it as `import.meta.env.VITE_COUNTRY`
+3. `App.tsx` reads it and passes to `CountryProvider`
+4. All components access via `useCountry()` hook
+
+### React Native Web Support
+
+- Uses Vite for web bundling
+- `react-native-web` aliases for cross-platform components
+- Mobile-responsive viewport (430px container)
+
+## Key Benefits
+
+✅ **Scalable**: Easy to add new countries or components  
+✅ **Type-Safe**: Full TypeScript support  
+✅ **Maintainable**: Configs live with components  
+✅ **No Prop Drilling**: Context-based state management  
+✅ **Zero Config for Consumers**: Components auto-adapt
