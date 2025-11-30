@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/mbb-country-render"
+    },
+    {
+      "path": "./libs/mbb-ui-kit"
+    }
+  ]
+}

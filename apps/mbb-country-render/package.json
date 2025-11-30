@@ -1,0 +1,15 @@
+{
+  "name": "@mbb-poc/mbb-country-render",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@react-native/metro-config": "*",
+    "react": "*",
+    "react-dom": "*",
+    "react-native": "*",
+    "react-native-web": "*",
+    "react-native-svg": "*",
+    "react-native-svg-web": "*",
+    "metro-config": "*"
+  }
+}
